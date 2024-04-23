@@ -14,9 +14,9 @@ using namespace std;
 #define GREEN   "\033[32m"
 #define BLUE    "\033[34m"
 
-float calculate();
 string input();
 string options();
+void calculate();
 void wipe();
 void ext();
 
@@ -32,9 +32,22 @@ int main() {
 }
 
 
-float calculate() {
+void calculate() {
+    string input;
+    string calculation;
     long double result;
-    return result;
+    bool exit == false;
+
+    cout <<
+
+    "Start writing your calculations here.\n" <<
+    "To get result, type ';' at the end of calculation.\n" <<
+    "To exit calculator and go back to menu type 'exit':\n\n";
+
+    while (!exit) {
+        cin >> input;
+        
+    }
 }
 
 string input() {
