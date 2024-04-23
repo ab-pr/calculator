@@ -16,7 +16,8 @@ using namespace std;
 
 string input();
 string options();
-void calculate();
+float parser(string calc);
+int calculate();
 void wipe();
 void ext();
 
@@ -31,12 +32,16 @@ int main() {
     }
 }
 
+float parser(string calc) {
+    long double result;
+    return result;
+}
 
-void calculate() {
+int calculate() {
     string input;
     string calculation;
     long double result;
-    bool exit == false;
+    bool exit = false;
 
     cout <<
 
@@ -44,9 +49,13 @@ void calculate() {
     "To get result, type ';' at the end of calculation.\n" <<
     "To exit calculator and go back to menu type 'exit':\n\n";
 
-    while (!exit) {
+    while (true) {
         cin >> input;
-        
+        if (input == "exit") { return 0.0; }
+
+        calculation += input;
+
+        if (input[input.size()-1] == ';') { parser(calculation); }
     }
 }
 
