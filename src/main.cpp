@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
-#include <cmath>
 #include <cctype>
 #include <ctype.h>
 #include <map>
+#include "../headers/exprtk.hpp"
 using namespace std;
 
 #ifdef _WIN32
@@ -11,6 +11,10 @@ using namespace std;
 #else
     #define CLEAR_SCREEN "clear"
 #endif
+
+typedef exprtk::symbol_table<double> symbol_table_t;
+typedef exprtk::expression<double> expression_t;
+typedef exprtk::parser<double> parser_t;
 
 #define RED_BACKGROUND "\033[41m"
 #define BLUE_BACKGROUND "\033[44m"
@@ -23,7 +27,7 @@ using namespace std;
 string input();
 string options();
 map<string, double> setVariables(map<string, double> variables);
-float parser(string calc, map<string, double> variables);
+float parser(string equation, map<string, double> variables);
 int calculate(map<string, double> variables);
 void wipe();
 void ext();
@@ -92,12 +96,17 @@ map<string, double> setVariables(map<string, double> variables) {
 	return variables;
 }
 
-float parser(string calc, map<string, double> variables) {
-    long double result;
+float parser(string equation, map<string, double> variables) {
+	symbol_table_t symbol_table;
+    expression_t expression;
+    parser_t parser;
 
-	
+	for (auto i : variables) { cout << i.first << "\t" << i.second; symbol_table.add_variable(i.first, i.second); }
+	expression.register_symbol_table(symbol_table);
+	parser.compile(equation, expression);
 
-    return result;
+	cout << expression.value();
+	return expression.value();
 }
 
 int calculate(map<string, double> variables) {
@@ -108,7 +117,7 @@ int calculate(map<string, double> variables) {
     cout << "\n" << BLUE_BACKGROUND << WHITE <<
 
     "\n\nStart writing your calculations here.\n" <<
-    "To get result, type ';' at the end of calculation.\n" <<
+    "To get result, type ';'.\n" <<
     "To exit calculator and go back to menu type 'STOP':\n"
 	<< RESET << "\n\n";
 
@@ -119,7 +128,7 @@ int calculate(map<string, double> variables) {
 
         calculation += parser(input, variables);
 
-        if (input[input.size()-1] == ';') {
+        if (input == ";") {
 			result = parser(calculation, variables);
 			cout << "\nResult: " << result << "\n";
 		}
