@@ -92,7 +92,7 @@ map<string, double> setVariables(map<string, double> variables) {
 	return variables;
 }
 
-float parser(string calc) {
+float parser(string calc, map<string, double> variables) {
     long double result;
 
 	
