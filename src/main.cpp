@@ -22,6 +22,7 @@ typedef exprtk::parser<double> parser_t;
 #define YELLOW "\033[33m"
 #define WHITE "\033[37m"
 #define RESET   "\033[0m"
+#define GREEN   "\033[32m"
 #define RED     "\033[31m"
 
 string input();
@@ -101,12 +102,11 @@ float parser(string equation, map<string, double> variables) {
     expression_t expression;
     parser_t parser;
 
-	for (auto i : variables) { cout << i.first << "\t" << i.second; symbol_table.add_variable(i.first, i.second); }
+	for (auto i : variables) { symbol_table.add_variable(i.first, i.second); }
 	expression.register_symbol_table(symbol_table);
 	parser.compile(equation, expression);
 
-	cout << expression.value();
-	return expression.value();
+	return (double) expression.value();
 }
 
 int calculate(map<string, double> variables) {
@@ -117,7 +117,6 @@ int calculate(map<string, double> variables) {
     cout << "\n" << BLUE_BACKGROUND << WHITE <<
 
     "\n\nStart writing your calculations here.\n" <<
-    "To get result, type ';'.\n" <<
     "To exit calculator and go back to menu type 'STOP':\n"
 	<< RESET << "\n\n";
 
@@ -126,12 +125,9 @@ int calculate(map<string, double> variables) {
         cin >> input;
         if (input == "STOP") { break; }
 
-        calculation += parser(input, variables);
-
-        if (input == ";") {
-			result = parser(calculation, variables);
-			cout << "\nResult: " << result << "\n";
-		}
+		result = parser(input, variables);
+		cout << GREEN << result << RESET << "\n";
+		variables["ANS"] = result;
     }
 	return 2; // Unknow Break
 }
