@@ -1,6 +1,9 @@
 #include <iostream>
+#include <string>
 #include <cmath>
+#include <cctype>
 #include <ctype.h>
+#include <map>
 using namespace std;
 
 #ifdef _WIN32
@@ -9,54 +12,119 @@ using namespace std;
     #define CLEAR_SCREEN "clear"
 #endif
 
+#define RED_BACKGROUND "\033[41m"
+#define BLUE_BACKGROUND "\033[44m"
+
+#define YELLOW "\033[33m"
+#define WHITE "\033[37m"
 #define RESET   "\033[0m"
 #define RED     "\033[31m"
-#define GREEN   "\033[32m"
-#define BLUE    "\033[34m"
 
 string input();
 string options();
-float parser(string calc);
-int calculate();
+map<string, double> setVariables(map<string, double> variables);
+float parser(string calc, map<string, double> variables);
+int calculate(map<string, double> variables);
 void wipe();
 void ext();
 
 int main() {
     string option;
+	map<string, double> variables;
     while (true) {
         option = options();
 
-        if          (option == "c") { calculate(); }
-        else if     (option == "w") { wipe(); }
-        else if     (option == "e") { ext(); }
+        if          (option == "CALC") { calculate(variables); }
+		else if 	(option == "VARIABLES") { variables = setVariables(variables); }
+        else if     (option == "WIPE") { wipe(); }
+        else if     (option == "EXIT") { ext(); }
     }
+}
+
+map<string, double> setVariables(map<string, double> variables) {
+	string input;
+	string num = "";
+	string variable;
+	cout << BLUE_BACKGROUND << YELLOW << "\n\n" << "Enter values for each variable eg. 'a=5'\n.To output the variables, type 'PRINT'\n.To stop, type 'STOP', and to clear all variables, type 'CLEAR'." << "\n" << RESET << "\n\n"; cout << "\n";
+	
+	while (true) {
+        cout << YELLOW << "--> " << RESET;
+		cin >> input;
+	
+		// Removes spaces from input
+		input.erase(remove_if(input.begin(), input.end(), [](char c) { return isspace(c); }), input.end());
+
+		if (input == "STOP") { break; }
+	
+		else if (input == "PRINT") {
+			cout << "\n";
+			for (const auto& pair : variables) {
+				cout << pair.first << "=" << pair.second << "\n";
+			} cout << "\n";
+
+		} else if (isalpha(input[0]) && input[1] == '=' && isdigit(input[2])){
+
+			variable = input[0];
+			for (int i = 0; i < input.size(); i++) {
+				if (isdigit(input[i])) {
+					num += input[i];
+				}
+			}
+			variables[variable] = stod(num);
+		} else if (input == "CLEAR") {
+			cout << RED_BACKGROUND << WHITE << "SURE? THIS WILL CLEAR ALL VARIABLE DATA! (YES/NO))" << "\n";
+			cin >> input;
+
+			if (input == "YES") { variables.clear(); cout << RED_BACKGROUND  << WHITE << "CLEARED." << RESET << "\n";}
+		}
+		
+
+		else {
+			cout << RED_BACKGROUND << WHITE << "REMEMBER,\n 1st char must be a single char,\n 2nd char must be '=',\n3rd char must be a digit (eg. '3') and,\nYou must use the, STOP, PRINT, CLEAR operators" << RESET;
+		}
+		input = "";
+		num = "";
+		variable = "";
+
+	}
+
+	
+	return variables;
 }
 
 float parser(string calc) {
     long double result;
+
+	
+
     return result;
 }
 
-int calculate() {
+int calculate(map<string, double> variables) {
     string input;
     string calculation;
     long double result;
-    bool exit = false;
 
-    cout <<
+    cout << "\n" << BLUE_BACKGROUND << WHITE <<
 
-    "Start writing your calculations here.\n" <<
+    "\n\nStart writing your calculations here.\n" <<
     "To get result, type ';' at the end of calculation.\n" <<
-    "To exit calculator and go back to menu type 'exit':\n\n";
+    "To exit calculator and go back to menu type 'STOP':\n"
+	<< RESET << "\n\n";
 
     while (true) {
+        cout << RED << "--> " << RESET;
         cin >> input;
-        if (input == "exit") { return 0.0; }
+        if (input == "STOP") { break; }
 
-        calculation += input;
+        calculation += parser(input, variables);
 
-        if (input[input.size()-1] == ';') { parser(calculation); }
+        if (input[input.size()-1] == ';') {
+			result = parser(calculation, variables);
+			cout << "\nResult: " << result << "\n";
+		}
     }
+	return 2; // Unknow Break
 }
 
 string input() {
@@ -72,14 +140,16 @@ string options() {
     string option;
 
     do {
-        cout << "Enter option ("
-        << RED << "(c)" << RESET "alculate), "
-        << GREEN << "(w)" << RESET << "ipe) screen, "
-        << BLUE << "(e)" << RESET << "xit program): ";
+        cout << "Enter option:\n\n"
+        << YELLOW << "CALC,\n"
+		<< "VARIABLES,\n"
+        << "WIPE,\n"
+        << "EXIT\n" << RESET
+        << "---> ";
         cin >> option;
 
-        if (option != "c" && option != "w" && option != "e") { cout << RED << "INVALID OPTION" << RESET << '\n'; }
-    } while (option != "c" && option != "w" && option != "e");
+        if (option != "CALC" && option != "VARIABLES" && option != "WIPE" && option != "EXIT") { cout << RED_BACKGROUND << WHITE << "INVALID OPTION" << RESET << '\n'; }
+    } while (option != "CALC" && option != "VARIABLES" && option != "WIPE" && option != "EXIT");
 
     return option;
 }
@@ -88,4 +158,6 @@ void wipe() {
     system(CLEAR_SCREEN);
 }
 
-void ext() { exit(0); }
+void ext() {
+	exit(0);
+}

@@ -1,9 +1,5 @@
-#include <iostream>
-#include <string>
 #include <sstream>
 #include <stack>
-#include <cmath>
-using namespace std;
 
 // Function to check if a character is an operator
 bool isOperator(char c) {
