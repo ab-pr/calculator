@@ -3,7 +3,8 @@
 #include <cctype>
 #include <ctype.h>
 #include <map>
-#include "../headers/exprtk.hpp"
+#include <sstream>
+#include "muparser/muParser.h"
 using namespace std;
 
 #ifdef _WIN32
@@ -11,10 +12,6 @@ using namespace std;
 #else
     #define CLEAR_SCREEN "clear"
 #endif
-
-typedef exprtk::symbol_table<double> symbol_table_t;
-typedef exprtk::expression<double> expression_t;
-typedef exprtk::parser<double> parser_t;
 
 #define RED_BACKGROUND "\033[41m"
 #define BLUE_BACKGROUND "\033[44m"
@@ -27,8 +24,9 @@ typedef exprtk::parser<double> parser_t;
 
 string input();
 string options();
+string parseVariables(map<string, double> variables, string equaition);
 map<string, double> setVariables(map<string, double> variables);
-float parser(string equation, map<string, double> variables);
+double parse_string_map(const std::string& equation, const std::map<std::string, double>& variables);
 int calculate(map<string, double> variables);
 void wipe();
 void ext();
@@ -42,7 +40,7 @@ int main() {
         if          (option == "CALC") { calculate(variables); }
 		else if 	(option == "VARIABLES") { variables = setVariables(variables); }
         else if     (option == "WIPE") { wipe(); }
-        else if     (option == "EXIT") { ext(); }
+        else if     (option == "STOP") { ext(); }
     }
 }
 
@@ -75,7 +73,11 @@ map<string, double> setVariables(map<string, double> variables) {
 					num += input[i];
 				}
 			}
-			variables[variable] = stod(num);
+			double numd = stod(num)+0.0;
+
+			variables[variable] = numd;
+			cout << variable << '\t' << numd << endl;
+
 		} else if (input == "CLEAR") {
 			cout << RED_BACKGROUND << WHITE << "SURE? THIS WILL CLEAR ALL VARIABLE DATA! (YES/NO))" << "\n";
 			cin >> input;
@@ -97,22 +99,79 @@ map<string, double> setVariables(map<string, double> variables) {
 	return variables;
 }
 
-float parser(string equation, map<string, double> variables) {
-	symbol_table_t symbol_table;
-    expression_t expression;
-    parser_t parser;
+/*
+string parseVariables(map<string, double> variables, string equation) {
+    char itochar;
+    for (int i = 0; i < equation.size(); i++) {
+        if (isalpha(equation[i]) && !isalpha(equation[i-1]) && !isalpha(equation[i+1])) {
+            // Convert the character key into a string
+            string key(1, equation[i]);
+            
+            // Check if the key exists in the map
+            auto it = variables.find(key);
+            if (it != variables.end()) {
+                itochar = static_cast<char>(it->second);
+                equation[i] = itochar;
+            } else {
+                itochar = static_cast<char>(0);
+                equation[i] = itochar;
+            }
+        }
+    }
+    return equation;
+}
+*/
 
-	for (auto i : variables) { symbol_table.add_variable(i.first, i.second); }
-	expression.register_symbol_table(symbol_table);
-	parser.compile(equation, expression);
+string parseVariables(map<string, double> variables, string equation) {
+    string result = equation;
 
-	return (double) expression.value();
+    // Iterate over each variable and substitute its value in the equation
+    for (const auto& pair : variables) {
+        // Find and replace all occurrences of the variable name with its value
+        size_t pos = result.find(pair.first);
+        while (pos != string::npos) {
+            // Convert the value to a string
+            ostringstream oss;
+            oss << pair.second;
+            string valueStr = oss.str();
+
+            // Replace the variable name with its value
+            result.replace(pos, pair.first.length(), valueStr);
+
+            // Find the next occurrence of the variable name
+            pos = result.find(pair.first, pos + valueStr.length());
+        }
+    }
+
+    return result;
+}
+
+double parse_string_map(const std::string& equation, const std::map<std::string, double>& variables) {
+    try {
+        mu::Parser parser;
+        
+        // Define variables in the parser
+        for (const auto& pair : variables) {
+            double value = pair.second; // Create non-const variable
+            parser.DefineVar(pair.first, &value); // Pass the address of the variable's value
+        }
+
+        // Set the expression to be parsed
+        parser.SetExpr(equation);
+
+        // Evaluate the expression and return the result
+        return parser.Eval();
+    }
+    catch (mu::Parser::exception_type &e) {
+        std::cout << e.GetMsg() << std::endl;
+        return NAN; // Return NaN for error
+    }
 }
 
 int calculate(map<string, double> variables) {
-    string input;
+    string equation;
     string calculation;
-    long double result;
+    double result;
 
     cout << "\n" << BLUE_BACKGROUND << WHITE <<
 
@@ -122,10 +181,12 @@ int calculate(map<string, double> variables) {
 
     while (true) {
         cout << RED << "--> " << RESET;
-        cin >> input;
-        if (input == "STOP") { break; }
+        cin >> equation;
+        if (equation == "STOP") { break; }
 
-		result = parser(input, variables);
+		equation = parseVariables(variables, equation);
+
+		result = parse_string_map(equation, variables);
 		cout << GREEN << result << RESET << "\n";
 		variables["ANS"] = result;
     }
@@ -149,12 +210,12 @@ string options() {
         << YELLOW << "CALC,\n"
 		<< "VARIABLES,\n"
         << "WIPE,\n"
-        << "EXIT\n" << RESET
+        << "STOP\n" << RESET
         << "---> ";
         cin >> option;
 
-        if (option != "CALC" && option != "VARIABLES" && option != "WIPE" && option != "EXIT") { cout << RED_BACKGROUND << WHITE << "INVALID OPTION" << RESET << '\n'; }
-    } while (option != "CALC" && option != "VARIABLES" && option != "WIPE" && option != "EXIT");
+        if (option != "CALC" && option != "VARIABLES" && option != "WIPE" && option != "STOP") { cout << RED_BACKGROUND << WHITE << "INVALID OPTION" << RESET << '\n'; }
+    } while (option != "CALC" && option != "VARIABLES" && option != "WIPE" && option != "STOP");
 
     return option;
 }
