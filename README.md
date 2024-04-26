@@ -41,8 +41,9 @@ calculator:
     \---> (ALL MUPARSER CPP FILES)
 
 ```
+**(2.5)**
 <details>
-<summary>**(2.5)** How to use another parser </summary>
+<summary> How to use another parser </summary>
  If you want to use another parser, you just need to change one function, the parseStringMap() function. For example, here is the same program using the `ExprTk` parser.
 
 ```c++
