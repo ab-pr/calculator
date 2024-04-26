@@ -1,3 +1,2 @@
 g++ -std=c++17 -o main src/main.cpp muparser/muParser.cpp muparser/muParserBase.cpp muparser/muParserBytecode.cpp muparser/muParserCallback.cpp muparser/muParserError.cpp muparser/muParserTokenReader.cpp
-g++ src/main.cpp -std=c++17 -o main
 ./main
