@@ -1,3 +1,4 @@
+#include <fstream>
 #include <iostream>
 #include <string>
 #include <cctype>
@@ -21,6 +22,7 @@ using namespace std;
 #define GREEN   "\033[32m"
 #define RED     "\033[31m"
 
+map<string, double> parseVariablsFromText(map<string, double> variables, string arg);
 map<string, double> setVariables(map<string, double> variables);
 string parseVariablesToInt(map<string, double> variables, string equaition);
 double parseStringMap(const string& equation, const map<string, double>& variables);
@@ -30,9 +32,15 @@ string options();
 void wipe();
 void ext();
 
-int main() {
+int main(int argc, char* argv[]) {
     string option;
 	map<string, double> variables;
+
+	if (argc > 1) {
+		string arg = argv[1];
+		variables = parseVariablsFromText(variables, arg);
+	}
+
     while (true) {
         option = options();
 
@@ -41,6 +49,43 @@ int main() {
         else if     (option == "WIPE") { wipe(); }
         else if     (option == "STOP") { ext(); }
     }
+}
+
+map<string, double> parseVariablsFromText(map<string, double> variables, string arg) {
+    ifstream inputFile(arg);
+									 
+    if (!inputFile.is_open()) {
+		cerr << "Failed to open the file." << '\n';
+    }
+
+    string line;
+	string variable;
+	string num = "";
+
+    while (getline(inputFile, line)) {
+		line.erase(remove_if(line.begin(), line.end(), [](char c) { return isspace(c); }), line.end());
+        cout << line << '\n';
+
+		if (isalpha(line[0]) && line[1] == '=' && isdigit(line[2])) {
+			variable = line[0];
+			for (int i = 0; i < line.size(); i++) {
+				if (isdigit(line[i])) {
+					num += line[i];
+				}
+			}
+			variables[variable] = stod(num);
+		}
+		line = "";
+		num = "";
+		variable = "";
+
+    }
+
+    inputFile.close();
+
+	cout << "\n\n";
+
+	return variables    ;
 }
 
 
@@ -73,10 +118,9 @@ map<string, double> setVariables(map<string, double> variables) {
 					num += input[i];
 				}
 			}
-			double numd = stod(num)+0.0;
+			double numd = stod(num);
 
 			variables[variable] = numd;
-			cout << variable << '\t' << numd << '\n';
 
 		} else if (input == "CLEAR") {
 			cout << RED_BACKGROUND << WHITE << "SURE? THIS WILL CLEAR ALL VARIABLE DATA! (YES/NO))" << '\n';
